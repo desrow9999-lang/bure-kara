@@ -30,12 +30,16 @@ st.markdown("""
         margin-top: 1.5rem;
         margin-bottom: 0.5rem;
     }
+    .stButton button {
+        border-radius: 8px;
+        font-weight: 600;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # ヘッダー
 st.markdown('<p class="main-title">✨ ブレてからが本番</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">写真をアップするだけで、AIが無限のスタイルで抽象アートへ自動変換。</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">不要なピンボケ写真を、スタイリッシュな抽象アートへ昇華。</p>', unsafe_allow_html=True)
 
 # --- STEP 1: 写真の選択 ---
 st.markdown('<p class="step-header">📁 Step 1. 写真を選ぶ</p>', unsafe_allow_html=True)
@@ -49,42 +53,53 @@ uploaded_files = st.file_uploader(
 if uploaded_files:
     st.success(f"selected: {len(uploaded_files)}枚の写真がセットされました")
     
+    # ガチャを回すボタン（押すたびに新しいランダムアートになる）
+    st.markdown('<p class="step-header">🎨 Step 2. アートを生成する</p>', unsafe_allow_html=True)
+    
+    # セッション状態でガチャのトリガーを管理
+    if 'seed' not in st.session_state:
+        st.session_state.seed = 0
+
+    if st.button("🎲 別のアートスタイルをガチャる（再生成）", use_container_width=True):
+        st.session_state.seed += 1
+
     processed_images = []
     
-    # 完全にスタイル選択をなくし、無限のランダムエフェクトを自動適用
-    for uploaded_file in uploaded_files:
+    # スタイリッシュなエフェクト候補から、写真ごとにランダムで1つを綺麗に適用
+    styles = ["neon_blur", "mirror_art", "edge_art", "retro_dot"]
+    
+    for i, uploaded_file in enumerate(uploaded_files):
         img = Image.open(uploaded_file).convert("RGB")
         w, h = img.size
         
-        # 1. ランダムなぼかし
-        if random.choice([True, False]):
-            img = img.filter(ImageFilter.GaussianBlur(radius=random.randint(10, 45)))
+        # 写真ごとに洗練されたどれか一つのスタイルを選択
+        chosen_style = random.choice(styles)
         
-        # 2. ランダムな色反転
-        if random.choice([True, False]):
-            img = ImageOps.invert(img)
+        if chosen_style == "neon_blur":
+            # 幻想的なネオン・ブラー
+            img = img.filter(ImageFilter.GaussianBlur(radius=20))
+            img = ImageOps.autocontrast(img, cutoff=20)
             
-        # 3. ランダムなコントラスト調整
-        if random.choice([True, False]):
-            img = ImageOps.autocontrast(img, cutoff=random.randint(5, 30))
-            
-        # 4. ランダムなドット絵・モザイク化
-        if random.choice([True, False]):
-            p_size = random.randint(10, 60)
-            img_s = img.resize((max(1, w // p_size), max(1, h // p_size)), Image.Resampling.NEAREST)
-            img = img_s.resize((w, h), Image.Resampling.NEAREST)
-            
-        # 5. ランダムな左右ミラー反転
-        if random.choice([True, False]):
+        elif chosen_style == "mirror_art":
+            # 左右対称のスタイリッシュなミラー
             half = img.crop((0, 0, w // 2, h))
             flipped = half.transpose(Image.FLIP_LEFT_RIGHT)
+            img = Image.new('RGB', (w, h))
+            img.paste(half, (0, 0))
             img.paste(flipped, (w // 2, 0))
+            img = img.filter(ImageFilter.GaussianBlur(radius=4))
             
-        # 6. ランダムなエッジ（線画風）抽出
-        if random.choice([True, False]):
+        elif chosen_style == "edge_art":
+            # カッコいいモノクロ線画風
             img = ImageOps.grayscale(img).filter(ImageFilter.FIND_EDGES)
             img = ImageOps.invert(img)
             img = img.convert("RGB")
+            
+        elif chosen_style == "retro_dot":
+            # おしゃれなレトロ・ピクセル
+            p_size = 20
+            img_s = img.resize((max(1, w // p_size), max(1, h // p_size)), Image.Resampling.NEAREST)
+            img = img_s.resize((w, h), Image.Resampling.NEAREST)
             
         processed_images.append(img)
     
@@ -105,8 +120,8 @@ if uploaded_files:
             collage.paste(im, (x_offset, 0))
             x_offset += im.width
             
-        # --- STEP 2: プレビュー & ダウンロード ---
-        st.markdown('<p class="step-header">📥 Step 2. ダウンロードしてCanvaへ</p>', unsafe_allow_html=True)
+        # --- STEP 3: プレビュー & ダウンロード ---
+        st.markdown('<p class="step-header">📥 Step 3. ダウンロードしてCanvaへ</p>', unsafe_allow_html=True)
         st.image(collage, use_container_width=True)
         
         # ダウンロードデータ作成
@@ -115,14 +130,14 @@ if uploaded_files:
         img_byte_arr.seek(0)
         
         st.download_button(
-            label="✨ 無限アート素材を保存する",
+            label="✨ このアート素材を保存する",
             data=img_byte_arr,
-            file_name="buretekara_infinite_art.png",
+            file_name="buretekara_art.png",
             mime="image/png",
             use_container_width=True
         )
         
-        st.info("💡 **ヒント**: 画面を再読み込み（リロード）するたびに、完全に異なる無限のスタイルで新しいアートが生成されます！気に入るまで何度でも楽しめます。")
+        st.info("💡 **ヒント**: 「別のアートスタイルをガチャる」ボタンを押すと、一瞬で別のカッコいいデザインに生まれ変わります！")
 
 else:
     st.info("👆 上のボックスをタップして、スマホの写真フォルダからピンボケ写真を選んでみてください。")
