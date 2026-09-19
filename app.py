@@ -1,5 +1,6 @@
 import streamlit as st
 from PIL import Image, ImageFilter, ImageOps
+import random
 import io
 
 # ページの設定
@@ -53,6 +54,7 @@ if uploaded_files:
     effect_choice = st.selectbox(
         "変換スタイル",
         [
+            "🎲 おまかせランダム・アート（AIセレクト）",
             "ネオン・ブラー (幻想的な光)", 
             "ミラー・万華鏡 (左右対称アート)", 
             "レトロ・ドット絵 (ピクセルアート風)", 
@@ -68,12 +70,22 @@ if uploaded_files:
         img = Image.open(uploaded_file).convert("RGB")
         w, h = img.size
         
-        if effect_choice == "ネオン・ブラー (幻想的な光)":
-            img = img.filter(ImageFilter.GaussianBlur(radius=25))
+        # スタイルが「おまかせランダム」の場合、画像ごとにランダムなエフェクトを適用
+        current_effect = effect_choice
+        if current_effect == "🎲 おまかせランダム・アート（AIセレクト）":
+            current_effect = random.choice([
+                "ネオン・ブラー (幻想的な光)", 
+                "ミラー・万華鏡 (左右対称アート)", 
+                "レトロ・ドット絵 (ピクセルアート風)", 
+                "モノクロ・エッジ (退廃的な質感)"
+            ])
+        
+        if current_effect == "ネオン・ブラー (幻想的な光)":
+            blur_val = random.randint(15, 35) if effect_choice.startswith("🎲") else 25
+            img = img.filter(ImageFilter.GaussianBlur(radius=blur_val))
             img = ImageOps.autocontrast(img, cutoff=15)
             
-        elif effect_choice == "ミラー・万華鏡 (左右対称アート)":
-            # 左右対称のミラーアートに変換
+        elif current_effect == "ミラー・万華鏡 (左右対称アート)":
             half = img.crop((0, 0, w // 2, h))
             flipped = half.transpose(Image.FLIP_LEFT_RIGHT)
             img = Image.new('RGB', (w, h))
@@ -81,12 +93,12 @@ if uploaded_files:
             img.paste(flipped, (w // 2, 0))
             img = img.filter(ImageFilter.GaussianBlur(radius=5))
             
-        elif effect_choice == "レトロ・ドット絵 (ピクセルアート風)":
-            # ドット絵風に荒くする
-            img_small = img.resize((max(1, w // 25), max(1, h // 25)), Image.Resampling.NEAREST)
+        elif current_effect == "レトロ・ドット絵 (ピクセルアート風)":
+            pixel_size = random.randint(15, 40) if effect_choice.startswith("🎲") else 25
+            img_small = img.resize((max(1, w // pixel_size), max(1, h // pixel_size)), Image.Resampling.NEAREST)
             img = img_small.resize((w, h), Image.Resampling.NEAREST)
             
-        elif effect_choice == "モノクロ・エッジ (退廃的な質感)":
+        elif current_effect == "モノクロ・エッジ (退廃的な質感)":
             img = ImageOps.grayscale(img)
             img = img.filter(ImageFilter.FIND_EDGES)
             img = ImageOps.invert(img)
