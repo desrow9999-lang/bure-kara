@@ -3,7 +3,7 @@ from PIL import Image, ImageFilter, ImageOps
 import random
 import io
 
-# ページの設定（タイトルとアイコンを最適化）
+# ページの設定（タイトルとタブのアイコンを設定）
 st.set_page_config(
     page_title="ブレてからが本番",
     page_icon="📸",
@@ -87,7 +87,7 @@ if uploaded_files:
             img = img.filter(ImageFilter.GaussianBlur(radius=4))
             
         elif chosen_style == "edge_art":
-            # カッコいいモノクロ線画風（コントラストを強めてハッキリ表示）
+            # カッコいいモノクロ線画風
             gray = ImageOps.grayscale(img)
             edges = gray.filter(ImageFilter.FIND_EDGES)
             inverted = ImageOps.invert(edges)
@@ -119,7 +119,7 @@ if uploaded_files:
             x_offset += im.width
             
         # --- STEP 3: プレビュー & ダウンロード ---
-        st.markdown('<p class="step-header">📥 Step 3. ダウンロードしてCanvaへ</p>', unsafe_allow_html=Year if False else True) # 構文修正済み
+        st.markdown('<p class="step-header">📥 Step 3. ダウンロードしてCanvaへ</p>', unsafe_allow_html=True)
         st.image(collage, use_container_width=True)
         
         # ダウンロードデータ作成
