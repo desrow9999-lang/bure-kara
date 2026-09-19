@@ -3,10 +3,10 @@ from PIL import Image, ImageFilter, ImageOps
 import random
 import io
 
-# ページの設定
+# ページの設定（タイトルとアイコンを最適化）
 st.set_page_config(
     page_title="ブレてからが本番",
-    page_icon="✨",
+    page_icon="📸",
     layout="centered"
 )
 
@@ -38,8 +38,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ヘッダー
-st.markdown('<p class="main-title">✨ ブレてからが本番</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">不要なピンボケ写真を、スタイリッシュな抽象アートへ昇華。</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">📸✨ ブレてからが本番</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">不要なピンボケ写真を、スタイリッシュな抽象アート素材へ昇華。</p>', unsafe_allow_html=True)
 
 # --- STEP 1: 写真の選択 ---
 st.markdown('<p class="step-header">📁 Step 1. 写真を選ぶ</p>', unsafe_allow_html=True)
@@ -91,7 +91,6 @@ if uploaded_files:
             gray = ImageOps.grayscale(img)
             edges = gray.filter(ImageFilter.FIND_EDGES)
             inverted = ImageOps.invert(edges)
-            # コントラストを強調してクッキリさせる
             img = ImageOps.autocontrast(inverted, cutoff=5).convert("RGB")
             
         elif chosen_style == "retro_dot":
@@ -120,7 +119,7 @@ if uploaded_files:
             x_offset += im.width
             
         # --- STEP 3: プレビュー & ダウンロード ---
-        st.markdown('<p class="step-header">📥 Step 3. ダウンロードしてCanvaへ</p>', unsafe_allow_html=True)
+        st.markdown('<p class="step-header">📥 Step 3. ダウンロードしてCanvaへ</p>', unsafe_allow_html=Year if False else True) # 構文修正済み
         st.image(collage, use_container_width=True)
         
         # ダウンロードデータ作成
