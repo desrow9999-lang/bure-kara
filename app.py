@@ -21,7 +21,7 @@ if uploaded_file is not None:
     original_image = Image.open(uploaded_file)
     
     st.subheader("1. 元のピンボケ写真")
-    st.image(original_image, use_column_width=True)
+    st.image(original_image, use_container_width=True)
     
     st.markdown("---")
     st.subheader("2. アートに生まれ変わった素材")
@@ -52,7 +52,7 @@ if uploaded_file is not None:
         processed_image = processed_image.filter(ImageFilter.BoxBlur(radius=10))
 
     # 加工後の画像を表示
-    st.image(processed_image, caption=f"スタイル: {effect_type}", use_column_width=True)
+    st.image(processed_image, caption=f"スタイル: {effect_type}", use_container_width=True)
     
     # ダウンロードボタン（Canvaに取り込みやすくする）
     img_byte_arr = io.BytesIO()
@@ -67,4 +67,3 @@ if uploaded_file is not None:
     )
     
     st.info("💡 ヒント：ダウンロードした画像をCanvaアプリで開き、お気に入りのテンプレートや文字と組み合わせると、最高におしゃれなポスターやスマホ壁紙になります！")
-
