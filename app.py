@@ -2,14 +2,14 @@ import streamlit as st
 from PIL import Image, ImageFilter, ImageOps
 import io
 
-# ページの設定（ワイドすぎずスッキリ見せる）
+# ページの設定
 st.set_page_config(
     page_title="ブレてからが本番",
     page_icon="✨",
     layout="centered"
 )
 
-# スタイリッシュなカスタムCSS（余白とフォントの調整）
+# スタイリッシュなカスタムCSS
 st.markdown("""
     <style>
     .main-title {
@@ -52,7 +52,12 @@ if uploaded_files:
     st.markdown('<p class="step-header">🎨 Step 2. 変換スタイルを選ぶ</p>', unsafe_allow_html=True)
     effect_choice = st.selectbox(
         "変換スタイル",
-        ["ネオン・ブラー (幻想的な光)", "モノクロ・エッジ (退廃的な質感)", "サイケデリック・シフト (色を反転)"],
+        [
+            "ネオン・ブラー (幻想的な光)", 
+            "ミラー・万華鏡 (左右対称アート)", 
+            "レトロ・ドット絵 (ピクセルアート風)", 
+            "モノクロ・エッジ (退廃的な質感)"
+        ],
         label_visibility="collapsed"
     )
     
@@ -60,18 +65,31 @@ if uploaded_files:
     
     # 画像処理
     for uploaded_file in uploaded_files:
-        img = Image.open(uploaded_file)
+        img = Image.open(uploaded_file).convert("RGB")
+        w, h = img.size
         
         if effect_choice == "ネオン・ブラー (幻想的な光)":
             img = img.filter(ImageFilter.GaussianBlur(radius=25))
             img = ImageOps.autocontrast(img, cutoff=15)
+            
+        elif effect_choice == "ミラー・万華鏡 (左右対称アート)":
+            # 左右対称のミラーアートに変換
+            half = img.crop((0, 0, w // 2, h))
+            flipped = half.transpose(Image.FLIP_LEFT_RIGHT)
+            img = Image.new('RGB', (w, h))
+            img.paste(half, (0, 0))
+            img.paste(flipped, (w // 2, 0))
+            img = img.filter(ImageFilter.GaussianBlur(radius=5))
+            
+        elif effect_choice == "レトロ・ドット絵 (ピクセルアート風)":
+            # ドット絵風に荒くする
+            img_small = img.resize((max(1, w // 25), max(1, h // 25)), Image.Resampling.NEAREST)
+            img = img_small.resize((w, h), Image.Resampling.NEAREST)
+            
         elif effect_choice == "モノクロ・エッジ (退廃的な質感)":
             img = ImageOps.grayscale(img)
             img = img.filter(ImageFilter.FIND_EDGES)
             img = ImageOps.invert(img)
-        elif effect_choice == "サイケデリック・シフト (色を反転)":
-            img = ImageOps.invert(img.convert("RGB"))
-            img = img.filter(ImageFilter.BoxBlur(radius=12))
             
         processed_images.append(img)
     
@@ -82,7 +100,7 @@ if uploaded_files:
         for img in processed_images:
             w, h = img.size
             new_w = int(w * (target_height / h))
-            resized_imgs.append(img.resize((new_w, target_height)))
+            resized_imgs.append(img.resize((new_w, target_height), Image.Resampling.LANCZOS))
             
         total_width = sum(im.width for im in resized_imgs)
         collage = Image.new('RGB', (total_width, target_height))
@@ -112,5 +130,4 @@ if uploaded_files:
         st.info("💡 **次のステップ**: 保存した画像をCanvaアプリで開き、お気に入りの文字やレイアウトを重ねてデザインを完成させましょう！")
 
 else:
-    # 写真が選択されていない時のガイド
     st.info("👆 上のボックスをタップして、スマホの写真フォルダからピンボケ写真を選んでみてください。")
