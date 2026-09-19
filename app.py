@@ -3,46 +3,104 @@ from PIL import Image, ImageFilter, ImageOps
 import random
 import io
 
-# ページの設定（タイトルとタブのアイコンを設定）
+# ページの設定
 st.set_page_config(
     page_title="ブレてからが本番",
     page_icon="📸",
     layout="centered"
 )
 
-# スタイリッシュなカスタムCSS
+# プロ仕様のモダンなダーク＆ガラスモーフィズムCSS
 st.markdown("""
     <style>
+    /* 全体の背景とフォントの洗練 */
+    .stApp {
+        background-color: #0b0f19;
+        color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    
+    /* ヘッダーのグラデーション文字 */
     .main-title {
-        font-size: 2.2rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
+        font-size: 2.5rem;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin-bottom: 0px;
     }
     .sub-title {
-        color: #666;
+        color: #9ca3af;
         font-size: 0.95rem;
         margin-bottom: 2rem;
+        font-weight: 400;
     }
+    
+    /* セクションヘッダー */
     .step-header {
         font-weight: 700;
-        font-size: 1.1rem;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.05rem;
+        color: #e5e7eb;
+        margin-top: 2rem;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.01em;
     }
+    
+    /* アップローダーのカスタマイズ（枠線を綺麗に） */
+    [data-testid="stFileUploader"] {
+        background-color: #111827;
+        border: 1px dashed #374151;
+        border-radius: 12px;
+        padding: 1rem;
+    }
+    [data-testid="stFileUploader"]:hover {
+        border-color: #6366f1;
+    }
+    
+    /* ボタンスタイルのリッチ化 */
     .stButton button {
-        border-radius: 8px;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
         font-weight: 600;
+        padding: 0.6rem 1rem;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transition: all 0.2s ease;
+    }
+    .stButton button:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+        transform: translateY(-1px);
+    }
+    
+    /* ダウンロードボタンの特別感 */
+    [data-testid="stDownloadButton"] button {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    [data-testid="stDownloadButton"] button:hover {
+        background: linear-gradient(135deg, #047857 0%, #059669 100%);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+    }
+    
+    /* インフォボックスのダーク調 */
+    .stAlert {
+        background-color: #1f2937 !important;
+        color: #f3f4f6 !important;
+        border: 1px solid #374151 !important;
+        border-radius: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # ヘッダー
-st.markdown('<p class="main-title">📸✨ ブレてからが本番</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">不要なピンボケ写真を、スタイリッシュな抽象アート素材へ昇華。</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">📸 ブレてからが本番</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">不要なピンボケ写真を、最先端の抽象アート素材へ昇華する。</p>', unsafe_allow_html=True)
 
 # --- STEP 1: 写真の選択 ---
-st.markdown('<p class="step-header">📁 Step 1. 写真を選ぶ</p>', unsafe_allow_html=True)
+st.markdown('<p class="step-header">01. 写真をインポート</p>', unsafe_allow_html=True)
 uploaded_files = st.file_uploader(
     "ピンボケ写真を複数選択してください", 
     type=["jpg", "jpeg", "png"], 
@@ -51,15 +109,15 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
-    st.success(f"selected: {len(uploaded_files)}枚の写真がセットされました")
+    st.success(f"✨ 成功: {len(uploaded_files)}枚の写真が読み込まれました")
     
     # ガチャを回すボタン
-    st.markdown('<p class="step-header">🎨 Step 2. アートを生成する</p>', unsafe_allow_html=True)
+    st.markdown('<p class="step-header">02. アートスタイル・ガチャ</p>', unsafe_allow_html=True)
     
     if 'seed' not in st.session_state:
         st.session_state.seed = 0
 
-    if st.button("🎲 別のアートスタイルをガチャる（再生成）", use_container_width=True):
+    if st.button("🎲 別のアートスタイルを再生成する", use_container_width=True):
         st.session_state.seed += 1
 
     processed_images = []
@@ -73,12 +131,10 @@ if uploaded_files:
         chosen_style = random.choice(styles)
         
         if chosen_style == "neon_blur":
-            # 幻想的なネオン・ブラー
             img = img.filter(ImageFilter.GaussianBlur(radius=25))
             img = ImageOps.autocontrast(img, cutoff=15)
             
         elif chosen_style == "mirror_art":
-            # 左右対称のスタイリッシュなミラー
             half = img.crop((0, 0, w // 2, h))
             flipped = half.transpose(Image.FLIP_LEFT_RIGHT)
             img = Image.new('RGB', (w, h))
@@ -87,14 +143,12 @@ if uploaded_files:
             img = img.filter(ImageFilter.GaussianBlur(radius=4))
             
         elif chosen_style == "edge_art":
-            # カッコいいモノクロ線画風
             gray = ImageOps.grayscale(img)
             edges = gray.filter(ImageFilter.FIND_EDGES)
             inverted = ImageOps.invert(edges)
             img = ImageOps.autocontrast(inverted, cutoff=5).convert("RGB")
             
         elif chosen_style == "retro_dot":
-            # おしゃれなレトロ・ピクセル
             p_size = 20
             img_s = img.resize((max(1, w // p_size), max(1, h // p_size)), Image.Resampling.NEAREST)
             img = img_s.resize((w, h), Image.Resampling.NEAREST)
@@ -111,7 +165,7 @@ if uploaded_files:
             resized_imgs.append(img.resize((new_w, target_height), Image.Resampling.LANCZOS))
             
         total_width = sum(im.width for im in resized_imgs)
-        collage = Image.new('RGB', (total_width, target_height), (255, 255, 255))
+        collage = Image.new('RGB', (total_width, target_height), (15, 23, 42)) # ダークな背景色に合わせる
         
         x_offset = 0
         for im in resized_imgs:
@@ -119,7 +173,7 @@ if uploaded_files:
             x_offset += im.width
             
         # --- STEP 3: プレビュー & ダウンロード ---
-        st.markdown('<p class="step-header">📥 Step 3. ダウンロードしてCanvaへ</p>', unsafe_allow_html=True)
+        st.markdown('<p class="step-header">03. プレビュー & エクスポート</p>', unsafe_allow_html=True)
         st.image(collage, use_container_width=True)
         
         # ダウンロードデータ作成
@@ -128,14 +182,14 @@ if uploaded_files:
         img_byte_arr.seek(0)
         
         st.download_button(
-            label="✨ このアート素材を保存する",
+            label="💾 アート素材をダウンロード (PNG)",
             data=img_byte_arr,
             file_name="buretekara_art.png",
             mime="image/png",
             use_container_width=True
         )
         
-        st.info("💡 **ヒント**: 「別のアートスタイルをガチャる」ボタンを押すと、一瞬で別のカッコいいデザインに生まれ変わります！")
+        st.info("💡 **Tips**: 「再生成する」ボタンを押すと、いつでも別のデザインパターンにガチャを回せます。")
 
 else:
-    st.info("👆 上のボックスをタップして、スマホの写真フォルダからピンボケ写真を選んでみてください。")
+    st.info("👆 上のボックスに写真をドラッグ＆ドロップ、またはタップして選択してください。")
