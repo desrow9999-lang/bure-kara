@@ -53,10 +53,9 @@ uploaded_files = st.file_uploader(
 if uploaded_files:
     st.success(f"selected: {len(uploaded_files)}枚の写真がセットされました")
     
-    # ガチャを回すボタン（押すたびに新しいランダムアートになる）
+    # ガチャを回すボタン
     st.markdown('<p class="step-header">🎨 Step 2. アートを生成する</p>', unsafe_allow_html=True)
     
-    # セッション状態でガチャのトリガーを管理
     if 'seed' not in st.session_state:
         st.session_state.seed = 0
 
@@ -64,21 +63,19 @@ if uploaded_files:
         st.session_state.seed += 1
 
     processed_images = []
-    
-    # スタイリッシュなエフェクト候補から、写真ごとにランダムで1つを綺麗に適用
     styles = ["neon_blur", "mirror_art", "edge_art", "retro_dot"]
     
     for i, uploaded_file in enumerate(uploaded_files):
         img = Image.open(uploaded_file).convert("RGB")
         w, h = img.size
         
-        # 写真ごとに洗練されたどれか一つのスタイルを選択
+        # ガチャごとにランダムなスタイルを決定
         chosen_style = random.choice(styles)
         
         if chosen_style == "neon_blur":
             # 幻想的なネオン・ブラー
-            img = img.filter(ImageFilter.GaussianBlur(radius=20))
-            img = ImageOps.autocontrast(img, cutoff=20)
+            img = img.filter(ImageFilter.GaussianBlur(radius=25))
+            img = ImageOps.autocontrast(img, cutoff=15)
             
         elif chosen_style == "mirror_art":
             # 左右対称のスタイリッシュなミラー
@@ -90,10 +87,12 @@ if uploaded_files:
             img = img.filter(ImageFilter.GaussianBlur(radius=4))
             
         elif chosen_style == "edge_art":
-            # カッコいいモノクロ線画風
-            img = ImageOps.grayscale(img).filter(ImageFilter.FIND_EDGES)
-            img = ImageOps.invert(img)
-            img = img.convert("RGB")
+            # カッコいいモノクロ線画風（コントラストを強めてハッキリ表示）
+            gray = ImageOps.grayscale(img)
+            edges = gray.filter(ImageFilter.FIND_EDGES)
+            inverted = ImageOps.invert(edges)
+            # コントラストを強調してクッキリさせる
+            img = ImageOps.autocontrast(inverted, cutoff=5).convert("RGB")
             
         elif chosen_style == "retro_dot":
             # おしゃれなレトロ・ピクセル
@@ -113,7 +112,7 @@ if uploaded_files:
             resized_imgs.append(img.resize((new_w, target_height), Image.Resampling.LANCZOS))
             
         total_width = sum(im.width for im in resized_imgs)
-        collage = Image.new('RGB', (total_width, target_height))
+        collage = Image.new('RGB', (total_width, target_height), (255, 255, 255))
         
         x_offset = 0
         for im in resized_imgs:
