@@ -13,14 +13,11 @@ st.set_page_config(
 # プロ仕様のモダンなダーク＆ガラスモーフィズムCSS
 st.markdown("""
     <style>
-    /* 全体の背景とフォントの洗練 */
     .stApp {
         background-color: #0b0f19;
         color: #f3f4f6;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    
-    /* ヘッダーのグラデーション文字 */
     .main-title {
         font-size: 2.5rem;
         font-weight: 900;
@@ -36,8 +33,6 @@ st.markdown("""
         margin-bottom: 2rem;
         font-weight: 400;
     }
-    
-    /* セクションヘッダー */
     .step-header {
         font-weight: 700;
         font-size: 1.05rem;
@@ -46,8 +41,6 @@ st.markdown("""
         margin-bottom: 0.75rem;
         letter-spacing: -0.01em;
     }
-    
-    /* アップローダーのカスタマイズ（枠線を綺麗に） */
     [data-testid="stFileUploader"] {
         background-color: #111827;
         border: 1px dashed #374151;
@@ -57,8 +50,6 @@ st.markdown("""
     [data-testid="stFileUploader"]:hover {
         border-color: #6366f1;
     }
-    
-    /* ボタンスタイルのリッチ化 */
     .stButton button {
         background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         color: white;
@@ -74,8 +65,6 @@ st.markdown("""
         box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
         transform: translateY(-1px);
     }
-    
-    /* ダウンロードボタンの特別感 */
     [data-testid="stDownloadButton"] button {
         background: linear-gradient(135deg, #059669 0%, #10b981 100%);
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
@@ -84,8 +73,6 @@ st.markdown("""
         background: linear-gradient(135deg, #047857 0%, #059669 100%);
         box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
     }
-    
-    /* インフォボックスのダーク調 */
     .stAlert {
         background-color: #1f2937 !important;
         color: #f3f4f6 !important;
@@ -97,7 +84,7 @@ st.markdown("""
 
 # ヘッダー
 st.markdown('<p class="main-title">📸 ブレてからが本番</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">不要なピンボケ写真を、最先端の抽象アート素材へ昇華する。</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">不要なピンボケ写真を、ハイエンドな抽象アート素材へ昇華する。</p>', unsafe_allow_html=True)
 
 # --- STEP 1: 写真の選択 ---
 st.markdown('<p class="step-header">01. 写真をインポート</p>', unsafe_allow_html=True)
@@ -112,7 +99,7 @@ if uploaded_files:
     st.success(f"✨ 成功: {len(uploaded_files)}枚の写真が読み込まれました")
     
     # ガチャを回すボタン
-    st.markdown('<p class="step-header">02. アートスタイル・ガチャ</p>', unsafe_allow_html=True)
+    st.markdown('<p class="step-header">02. アートスタイル・ガチャ（ハイエンド生成）</p>', unsafe_allow_html=True)
     
     if 'seed' not in st.session_state:
         st.session_state.seed = 0
@@ -121,7 +108,8 @@ if uploaded_files:
         st.session_state.seed += 1
 
     processed_images = []
-    styles = ["neon_blur", "mirror_art", "edge_art", "retro_dot"]
+    # 表現の幅を広げたスタイルのラインナップ
+    styles = ["neon_glow", "mirror_kaleido", "cyber_edge", "retro_mosaic", "cinematic_blur"]
     
     for i, uploaded_file in enumerate(uploaded_files):
         img = Image.open(uploaded_file).convert("RGB")
@@ -130,28 +118,42 @@ if uploaded_files:
         # ガチャごとにランダムなスタイルを決定
         chosen_style = random.choice(styles)
         
-        if chosen_style == "neon_blur":
-            img = img.filter(ImageFilter.GaussianBlur(radius=25))
-            img = ImageOps.autocontrast(img, cutoff=15)
+        if chosen_style == "neon_glow":
+            # 幻想的なネオン・グロウ（多重ぼかし＋コントラスト強調）
+            img = img.filter(ImageFilter.GaussianBlur(radius=random.randint(20, 35)))
+            img = ImageOps.autocontrast(img, cutoff=20)
+            img = img.filter(ImageFilter.DETAIL)
             
-        elif chosen_style == "mirror_art":
+        elif chosen_style == "mirror_kaleido":
+            # 左右対称のスタイリッシュなミラー万華鏡
             half = img.crop((0, 0, w // 2, h))
             flipped = half.transpose(Image.FLIP_LEFT_RIGHT)
             img = Image.new('RGB', (w, h))
             img.paste(half, (0, 0))
             img.paste(flipped, (w // 2, 0))
-            img = img.filter(ImageFilter.GaussianBlur(radius=4))
+            img = img.filter(ImageFilter.GaussianBlur(radius=3))
+            img = ImageOps.autocontrast(img, cutoff=10)
             
-        elif chosen_style == "edge_art":
+        elif chosen_style == "cyber_edge":
+            # カッコいいモノクロエッジ＆シャープネス
             gray = ImageOps.grayscale(img)
             edges = gray.filter(ImageFilter.FIND_EDGES)
             inverted = ImageOps.invert(edges)
             img = ImageOps.autocontrast(inverted, cutoff=5).convert("RGB")
             
-        elif chosen_style == "retro_dot":
-            p_size = 20
+        elif chosen_style == "retro_mosaic":
+            # 洗練されたレトロ・ドット（ピクセルアート）
+            p_size = random.randint(15, 25)
             img_s = img.resize((max(1, w // p_size), max(1, h // p_size)), Image.Resampling.NEAREST)
             img = img_s.resize((w, h), Image.Resampling.NEAREST)
+            img = ImageOps.autocontrast(img, cutoff=15)
+            
+        elif chosen_style == "cinematic_blur":
+            # シネマティックな柔らかいボケ足とトーン
+            img = img.filter(ImageFilter.GaussianBlur(radius=15))
+            img = ImageOps.invert(img)
+            img = img.filter(ImageFilter.SMOOTH_MORE)
+            img = ImageOps.autocontrast(img, cutoff=25)
             
         processed_images.append(img)
     
@@ -165,7 +167,7 @@ if uploaded_files:
             resized_imgs.append(img.resize((new_w, target_height), Image.Resampling.LANCZOS))
             
         total_width = sum(im.width for im in resized_imgs)
-        collage = Image.new('RGB', (total_width, target_height), (15, 23, 42)) # ダークな背景色に合わせる
+        collage = Image.new('RGB', (total_width, target_height), (11, 15, 25))
         
         x_offset = 0
         for im in resized_imgs:
@@ -182,14 +184,14 @@ if uploaded_files:
         img_byte_arr.seek(0)
         
         st.download_button(
-            label="💾 アート素材をダウンロード (PNG)",
+            label="💾 ハイエンド素材をダウンロード (PNG)",
             data=img_byte_arr,
-            file_name="buretekara_art.png",
+            file_name="buretekara_high_end.png",
             mime="image/png",
             use_container_width=True
         )
         
-        st.info("💡 **Tips**: 「再生成する」ボタンを押すと、いつでも別のデザインパターンにガチャを回せます。")
+        st.info("💡 **Tips**: 「再生成する」ボタンを押すと、さらに洗練された5つのスタイルからランダムで新しいパターンがガチャられます。")
 
 else:
     st.info("👆 上のボックスに写真をドラッグ＆ドロップ、またはタップして選択してください。")
