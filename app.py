@@ -1,28 +1,29 @@
-import streamlit as st
-from PIL import Image, ImageFilter, ImageOps
 import random
 import io
+import numpy as np
+import streamlit as st
+from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 
-# ページの設定
+# 1. ページの基本設定
 st.set_page_config(
-    page_title="ブレてからが本番",
+    page_title="ブレてからが本番。",
     page_icon="📸",
     layout="centered"
 )
 
-# プロ仕様のモダンなダーク＆ガラスモーフィズムCSS
+# 2. プロ仕様のモダン＆ダーク＆グラスモーフィズムCSS
 st.markdown("""
-    <style>
+<style>
     .stApp {
-        background-color: #0b0f19;
-        color: #f3f4f6;
+        background-color: #0d0f19;
+        color: #fafa-f6;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .main-title {
-        font-size: 2.5rem;
-        font-weight: 900;
+        font-size: 2.2rem;
+        font-weight: 700;
         letter-spacing: -0.04em;
-        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        background: linear-gradient(135deg, #e6ff6f 0%, #a335f7 50%, #0ec499 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0px;
@@ -56,142 +57,100 @@ st.markdown("""
         border: none;
         border-radius: 10px;
         font-weight: 600;
-        padding: 0.6rem 1rem;
+        padding: 0.8rem 1rem;
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         transition: all 0.2s ease;
+        width: 100%;
     }
     .stButton button:hover {
         background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
-        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
         transform: translateY(-1px);
     }
-    [data-testid="stDownloadButton"] button {
-        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    }
-    [data-testid="stDownloadButton"] button:hover {
-        background: linear-gradient(135deg, #047857 0%, #059669 100%);
-        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
-    }
-    .stAlert {
-        background-color: #1f2937 !important;
-        color: #f3f4f6 !important;
-        border: 1px solid #374151 !important;
-        border-radius: 10px;
-    }
-    </style>
+</style>
 """, unsafe_allow_html=True)
 
-# ヘッダー
-st.markdown('<p class="main-title">📸 ブレてからが本番</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">不要なピンボケ写真を、ハイエンドな抽象アート素材へ昇華する。</p>', unsafe_allow_html=True)
+# 3. タイトル・イントロダクション
+st.markdown('<p class="main-title">ブレてからが本番。 <span style="font-size: 1.2rem;">✨</span></p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">微小なブレから、皆が目を引く強烈な1枚へ！失敗作を高衝撃変形エンジンでアップサイクル。</p>', unsafe_allow_html=True)
 
-# --- STEP 1: 写真の選択 ---
-st.markdown('<p class="step-header">01. 写真をインポート</p>', unsafe_allow_html=True)
-uploaded_files = st.file_uploader(
-    "ピンボケ写真を複数選択してください", 
-    type=["jpg", "jpeg", "png"], 
-    accept_multiple_files=True,
-    label_visibility="collapsed"
-)
+# 4. 高衝撃変形エンジン（画像処理ロジック）
+def apply_impact_art(image, style_choice):
+    """
+    微小なブレや光のニュアンスを強烈にブーストし、目を引くアートに昇華するエンジン
+    """
+    # RGBに変換（念のため）
+    image = image.convert("RGB")
+    
+    # ベースのコントラストと発色を強烈にブースト（微小なブレを浮き上がらせる）
+    image = ImageEnhance.Contrast(image).enhance(2.8)
+    image = ImageEnhance.Color(image).enhance(2.2)
+    
+    if style_choice == "グリッチ・ポップ":
+        # エッジ抽出とネガポジ反転によるサイバー感
+        edges = image.filter(ImageFilter.FIND_EDGES)
+        inverted = ImageOps.invert(edges)
+        image = Image.blend(image, inverted, alpha=0.5)
+        image = image.filter(ImageFilter.SHARPEN)
+        
+    elif style_choice == "ネオン・フロー":
+        # 輪郭とぼかしの融合による流線型アート
+        blurred = image.filter(ImageFilter.GaussianBlur(radius=4))
+        edges = image.filter(ImageFilter.FIND_EDGES)
+        image = Image.blend(blurred, edges, alpha=0.7)
+        image = ImageOps.solarize(image, threshold=100)
+        
+    elif style_choice == "抽象的破片":
+        # ポスタライズ＆ディテール強調による幾何学・破片風
+        image = image.quantize(colors=6).convert("RGB")
+        image = image.filter(ImageFilter.DETAIL)
+        image = image.filter(ImageFilter.FIND_EDGES)
+        
+    elif style_choice == "カラーウェーブ":
+        # 複数回のスムージングと色反転のウェーブ効果
+        for _ in range(2):
+            image = image.filter(ImageFilter.SMOOTH_MORE)
+        image = ImageOps.solarize(image, threshold=128)
+        image = ImageEnhance.Brightness(image).enhance(1.3)
+        
+    return image
 
-if uploaded_files:
-    st.success(f"✨ 成功: {len(uploaded_files)}枚の写真が読み込まれました")
-    
-    # ガチャを回すボタン
-    st.markdown('<p class="step-header">02. アートスタイル・ガチャ（ハイエンド生成）</p>', unsafe_allow_html=True)
-    
-    if 'seed' not in st.session_state:
-        st.session_state.seed = 0
+# 5. アップロード＆操作UI
+st.markdown('<p class="step-header">ステップ1: 失敗写真をアップロード</p>', unsafe_allow_html=True)
+uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"])
 
-    if st.button("🎲 別のアートスタイルを再生成する", use_container_width=True):
-        st.session_state.seed += 1
-
-    processed_images = []
-    # 表現の幅を広げたスタイルのラインナップ
-    styles = ["neon_glow", "mirror_kaleido", "cyber_edge", "retro_mosaic", "cinematic_blur"]
+if uploaded_file is not None:
+    original_image = Image.open(uploaded_file)
     
-    for i, uploaded_file in enumerate(uploaded_files):
-        img = Image.open(uploaded_file).convert("RGB")
-        w, h = img.size
-        
-        # ガチャごとにランダムなスタイルを決定
-        chosen_style = random.choice(styles)
-        
-        if chosen_style == "neon_glow":
-            # 幻想的なネオン・グロウ（多重ぼかし＋コントラスト強調）
-            img = img.filter(ImageFilter.GaussianBlur(radius=random.randint(20, 35)))
-            img = ImageOps.autocontrast(img, cutoff=20)
-            img = img.filter(ImageFilter.DETAIL)
-            
-        elif chosen_style == "mirror_kaleido":
-            # 左右対称のスタイリッシュなミラー万華鏡
-            half = img.crop((0, 0, w // 2, h))
-            flipped = half.transpose(Image.FLIP_LEFT_RIGHT)
-            img = Image.new('RGB', (w, h))
-            img.paste(half, (0, 0))
-            img.paste(flipped, (w // 2, 0))
-            img = img.filter(ImageFilter.GaussianBlur(radius=3))
-            img = ImageOps.autocontrast(img, cutoff=10)
-            
-        elif chosen_style == "cyber_edge":
-            # カッコいいモノクロエッジ＆シャープネス
-            gray = ImageOps.grayscale(img)
-            edges = gray.filter(ImageFilter.FIND_EDGES)
-            inverted = ImageOps.invert(edges)
-            img = ImageOps.autocontrast(inverted, cutoff=5).convert("RGB")
-            
-        elif chosen_style == "retro_mosaic":
-            # 洗練されたレトロ・ドット（ピクセルアート）
-            p_size = random.randint(15, 25)
-            img_s = img.resize((max(1, w // p_size), max(1, h // p_size)), Image.Resampling.NEAREST)
-            img = img_s.resize((w, h), Image.Resampling.NEAREST)
-            img = ImageOps.autocontrast(img, cutoff=15)
-            
-        elif chosen_style == "cinematic_blur":
-            # シネマティックな柔らかいボケ足とトーン
-            img = img.filter(ImageFilter.GaussianBlur(radius=15))
-            img = ImageOps.invert(img)
-            img = img.filter(ImageFilter.SMOOTH_MORE)
-            img = ImageOps.autocontrast(img, cutoff=25)
-            
-        processed_images.append(img)
+    st.markdown('<p class="step-header">ステップ2: 変換スタイルを選択</p>', unsafe_allow_html=True)
+    style_choice = st.selectbox(
+        "目を引く強烈なスタイルを選んでください",
+        ["グリッチ・ポップ", "ネオン・フロー", "抽象的破片", "カラーウェーブ"]
+    )
     
-    # コラージュ合成
-    if processed_images:
-        target_height = 400
-        resized_imgs = []
-        for img in processed_images:
-            w, h = img.size
-            new_w = int(w * (target_height / h))
-            resized_imgs.append(img.resize((new_w, target_height), Image.Resampling.LANCZOS))
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    if st.button("🔥 強烈な1枚を生成する"):
+        with st.spinner("高衝撃変形エンジン作動中... 🚀"):
+            # 画像変換の実行
+            processed_image = apply_impact_art(original_image, style_choice)
             
-        total_width = sum(im.width for im in resized_imgs)
-        collage = Image.new('RGB', (total_width, target_height), (11, 15, 25))
+        st.success("✨ 強烈な1枚の生成が完了しました！")
         
-        x_offset = 0
-        for im in resized_imgs:
-            collage.paste(im, (x_offset, 0))
-            x_offset += im.width
-            
-        # --- STEP 3: プレビュー & ダウンロード ---
-        st.markdown('<p class="step-header">03. プレビュー & エクスポート</p>', unsafe_allow_html=True)
-        st.image(collage, use_container_width=True)
+        # 変換後画像の表示
+        st.image(processed_image, caption=f"「{style_choice}」でアップサイクルされた作品", use_column_width=True)
         
-        # ダウンロードデータ作成
-        img_byte_arr = io.BytesIO()
-        collage.save(img_byte_arr, format='PNG')
-        img_byte_arr.seek(0)
+        # ダウンロードボタン用のバッファ生成
+        buf = io.BytesIO()
+        processed_image.save(buf, format="PNG")
+        byte_im = buf.getvalue()
         
         st.download_button(
-            label="💾 ハイエンド素材をダウンロード (PNG)",
-            data=img_byte_arr,
-            file_name="buretekara_high_end.png",
-            mime="image/png",
-            use_container_width=True
+            label="📥 この強烈な1枚をダウンロード (PNG)",
+            data=byte_im,
+            file_name=f"bure-kara-impact-{style_choice}.png",
+            mime="image/png"
         )
-        
-        st.info("💡 **Tips**: 「再生成する」ボタンを押すと、さらに洗練された5つのスタイルからランダムで新しいパターンがガチャられます。")
-
 else:
-    st.info("👆 上のボックスに写真をドラッグ＆ドロップ、またはタップして選択してください。")
+    st.info("💡 まずはスマホのブレた写真を選択してください。小さなブレほど、強烈なアートに生まれ変わります！")
+、
