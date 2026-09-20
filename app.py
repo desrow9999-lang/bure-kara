@@ -103,10 +103,16 @@ def apply_impact_art(image, style_choice):
     return image
 
 st.markdown('<p class="step-header">ステップ1: 失敗写真をアップロード</p>', unsafe_allow_html=True)
-uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"])
+
+# スマホの各種フォーマット（jpg, jpeg, png, webp, heic等）を広く受け付けるように設定
+uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png", "webp", "heic", "heif"])
 
 if uploaded_file is not None:
-    original_image = Image.open(uploaded_file)
+    try:
+        original_image = Image.open(uploaded_file)
+    except Exception as e:
+        st.error(f"画像の読み込みに失敗しました。別の画像をお試しください。（エラー: {e}）")
+        st.stop()
     
     st.markdown('<p class="step-header">ステップ2: 変換スタイルを選択</p>', unsafe_allow_html=True)
     style_choice = st.selectbox(
