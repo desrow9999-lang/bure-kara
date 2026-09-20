@@ -4,19 +4,17 @@ import numpy as np
 import streamlit as st
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 
-# 1. ページの基本設定
 st.set_page_config(
     page_title="ブレてからが本番。",
     page_icon="📸",
     layout="centered"
 )
 
-# 2. プロ仕様のモダン＆ダーク＆グラスモーフィズムCSS
 st.markdown("""
 <style>
     .stApp {
         background-color: #0d0f19;
-        color: #fafa-f6;
+        color: #fafaef;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .main-title {
@@ -70,44 +68,33 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. タイトル・イントロダクション
 st.markdown('<p class="main-title">ブレてからが本番。 <span style="font-size: 1.2rem;">✨</span></p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">微小なブレから、皆が目を引く強烈な1枚へ！失敗作を高衝撃変形エンジンでアップサイクル。</p>', unsafe_allow_html=True)
 
-# 4. 高衝撃変形エンジン（画像処理ロジック）
 def apply_impact_art(image, style_choice):
-    """
-    微小なブレや光のニュアンスを強烈にブーストし、目を引くアートに昇華するエンジン
-    """
-    # RGBに変換（念のため）
     image = image.convert("RGB")
     
-    # ベースのコントラストと発色を強烈にブースト（微小なブレを浮き上がらせる）
     image = ImageEnhance.Contrast(image).enhance(2.8)
     image = ImageEnhance.Color(image).enhance(2.2)
     
     if style_choice == "グリッチ・ポップ":
-        # エッジ抽出とネガポジ反転によるサイバー感
         edges = image.filter(ImageFilter.FIND_EDGES)
         inverted = ImageOps.invert(edges)
         image = Image.blend(image, inverted, alpha=0.5)
         image = image.filter(ImageFilter.SHARPEN)
         
     elif style_choice == "ネオン・フロー":
-        # 輪郭とぼかしの融合による流線型アート
         blurred = image.filter(ImageFilter.GaussianBlur(radius=4))
         edges = image.filter(ImageFilter.FIND_EDGES)
         image = Image.blend(blurred, edges, alpha=0.7)
         image = ImageOps.solarize(image, threshold=100)
         
     elif style_choice == "抽象的破片":
-        # ポスタライズ＆ディテール強調による幾何学・破片風
         image = image.quantize(colors=6).convert("RGB")
         image = image.filter(ImageFilter.DETAIL)
         image = image.filter(ImageFilter.FIND_EDGES)
         
     elif style_choice == "カラーウェーブ":
-        # 複数回のスムージングと色反転のウェーブ効果
         for _ in range(2):
             image = image.filter(ImageFilter.SMOOTH_MORE)
         image = ImageOps.solarize(image, threshold=128)
@@ -115,7 +102,6 @@ def apply_impact_art(image, style_choice):
         
     return image
 
-# 5. アップロード＆操作UI
 st.markdown('<p class="step-header">ステップ1: 失敗写真をアップロード</p>', unsafe_allow_html=True)
 uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"])
 
@@ -132,15 +118,12 @@ if uploaded_file is not None:
     
     if st.button("🔥 強烈な1枚を生成する"):
         with st.spinner("高衝撃変形エンジン作動中... 🚀"):
-            # 画像変換の実行
             processed_image = apply_impact_art(original_image, style_choice)
             
         st.success("✨ 強烈な1枚の生成が完了しました！")
         
-        # 変換後画像の表示
         st.image(processed_image, caption=f"「{style_choice}」でアップサイクルされた作品", use_column_width=True)
         
-        # ダウンロードボタン用のバッファ生成
         buf = io.BytesIO()
         processed_image.save(buf, format="PNG")
         byte_im = buf.getvalue()
@@ -153,4 +136,3 @@ if uploaded_file is not None:
         )
 else:
     st.info("💡 まずはスマホのブレた写真を選択してください。小さなブレほど、強烈なアートに生まれ変わります！")
-、
